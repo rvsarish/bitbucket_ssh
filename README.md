@@ -1,90 +1,114 @@
-# SSH Setup for Multiple Git Accounts (Company Bitbucket & GitHub)
+# SSH Setup for Juspay Bitbucket
 
-# Make sure to replace all instances of "Company" with your actual company name. This is just a demo and get access for bitbucket and your companys repos.
-
-This guide provides a clear, step-by-step process for setting up a dedicated SSH key for your Company Bitbucket account. This method ensures your Company key is used only for Company repositories, preventing conflicts with other accounts like a personal GitHub.
+> **Note:** This guide shows how to set up a dedicated SSH key for Juspay Bitbucket to work alongside other Git accounts (like a personal GitHub). This ensures you use the correct credentials for each service.
 
 ---
 
-### Step 1: Generate a Dedicated SSH Key for Company
+## Step 1: Generate a Dedicated SSH Key for Juspay
 
-To avoid conflicts with any existing keys (like one for GitHub), we will create a new, specifically named key for Company.
+We will create a **separately named SSH key** to avoid conflicts with other services.
 
-1.  Open your terminal and run the following command, which creates a new key and names the files `id_ed25519_Company`:
+### macOS / Linux:
+```bash
+ssh-keygen -t ed25519 -C "you@juspay.com" -f ~/.ssh/id_ed25519_juspay # -t: Key algorithm, -C: Comment/Label, -f: Filename
+```
 
-    ```bash
-    ssh-keygen -t ed25519 -C "sarish.rv@Company.in" -f ~/.ssh/id_ed25519_Company
-    ```
+### Windows (PowerShell):
 
-2.  When prompted, enter a secure passphrase. This is a password for your SSH key and adds an extra layer of security.
+```powershell
+ssh-keygen -t ed25519 -C "you@juspay.com" -f "$env:USERPROFILE\.ssh\id_ed25519_juspay" # Use your Juspay email and a specific key name
+```
 
-This creates two files: `~/.ssh/id_ed25519_Company` (private key) and `~/.ssh/id_ed25519_Company.pub` (public key).
-
----
-
-### Step 2: Configure SSH to Use Your New Key for Company
-
-This is the most important step for managing multiple accounts. We will tell SSH which key to use for the Company Bitbucket host.
-
-1.  Open the SSH config file in a text editor. If it doesn't exist, this command will create it:
-    ```bash
-    nano ~/.ssh/config
-    ```
-
-2.  Add the following block to the file. This configuration directs SSH to use your new Company key whenever it connects to `ssh.bitbucket.Company.net`.
-
-    ```
-    # Company Bitbucket Account
-    Host ssh.bitbucket.Company.net
-      HostName ssh.bitbucket.Company.net
-      User git
-      IdentityFile ~/.ssh/id_ed25519_Company
-      IdentitiesOnly yes
-    ```
-
-3.  Save and close the file. (In `nano`, press `Ctrl+X`, then `Y`, then `Enter`).
+> **Important:** When prompted for a passphrase, it is highly recommended to set one. This adds an extra layer of security to your private key.
+>
+> This command creates two files in your `.ssh` directory:
+> * **Private key**: `id_ed25519_juspay` (Keep this secret!)
+> * **Public key**: `id_ed25519_juspay.pub` (This is what you'll share)
 
 ---
 
-### Step 3: Add the Public SSH Key to Your Company Bitbucket Account
+## Step 2: Configure SSH to Use the New Key for Juspay
 
-1.  Copy your new **public** key to the clipboard:
-    ```bash
-    pbcopy < ~/.ssh/id_ed25519_Company.pub
-    ```
-    *(On Linux, you might need `xclip -sel clip < ~/.ssh/id_ed25519_Company.pub`)*
+This step tells your system to use the new key **only** when connecting to the Juspay Bitbucket server.
 
-2.  Navigate to your Company Bitbucket account settings:
-    - Click your avatar > **Personal settings**.
-    - Go to **SSH keys** under the **Security** section.
+### Open or create the SSH config file:
+*   **macOS / Linux:** `nano ~/.ssh/config`
+*   **Windows (PowerShell):** `notepad $env:USERPROFILE\.ssh\config`
+    > If the file doesn't exist, the command will create it.
 
-3.  Click **Add key**, give it a descriptive label (e.g., "Work MacBook"), paste the copied key, and save.
+### Add this configuration block to the file:
 
----
+```
+# Juspay Bitbucket Account
+Host bitbucket.juspay.net
+  HostName bitbucket.juspay.net      # The actual hostname of the server.
+  User git                          # The user to connect with (always 'git').
+  IdentityFile ~/.ssh/id_ed25519_juspay # The path to the specific private key.
+  IdentitiesOnly yes                # Ensures SSH only uses this specific key for this host.
+```
 
-### Step 4: Configure Git Identity (Optional but Recommended)
-
-For Company repositories, you can set a local Git config to ensure you always commit with your work email.
-
-1.  Clone your project first:
-    ```bash
-    git clone ssh://git@ssh.bitbucket.Company.net/reponame.git
-    ```
-
-2.  Navigate into the repository directory:
-    ```bash
-    cd repo
-    ```
-
-3.  Set your name and email **for this repository only**:
-    ```bash
-    git config user.name "Sarish RV"
-    git config user.email "sarish.rv@Company.in"
-    ```
-    This overrides your global Git config, ensuring your work commits are correctly attributed without affecting your personal projects.
+> **Note for Windows users:** If the `~` shortcut doesn't work, use the full path for `IdentityFile`, like `C:\Users\YourUsername\.ssh\id_ed25519_juspay`.
+>
+> Save and close the file after adding the block.
 
 ---
 
-### Step 5: Test and Use
+## Step 3: Add Your Public Key to Juspay Bitbucket
 
-Your setup is complete. You can now clone, pull, and push to Company repositories, and your system will automatically use the correct key. Your personal GitHub and other accounts will remain unaffected.
+Now, you need to provide your **public key** to Bitbucket so it recognizes your machine.
+
+### Copy the public key to your clipboard:
+*   **macOS:** `pbcopy < ~/.ssh/id_ed25519_juspay.pub`
+*   **Linux:** `xclip -sel clip < ~/.ssh/id_ed25519_juspay.pub` (You may need to install xclip: `sudo apt-get install xclip` or `sudo dnf install xclip`)
+*   **Windows (PowerShell):** `Get-Content "$env:USERPROFILE\.ssh\id_ed25519_juspay.pub" | Set-Clipboard`
+
+### Then, in your Juspay Bitbucket account:
+
+1.  Navigate to your user profile.
+2.  Go to **Personal settings → SSH keys**.
+3.  Click **Add key**.
+4.  Give it a descriptive **Label** (e.g., "Work Laptop - MacBook Pro").
+5.  Paste the copied public key into the **Key** field and save.
+
+---
+
+## Step 4: Configure Your Git Identity (Per Repository)
+
+This step ensures that commits you make in Juspay repositories are attributed to your **work identity**.
+
+```bash
+git clone git@bitbucket.juspay.net:project/repo.git # Example clone URL, replace with your project's URL.
+
+cd repo # Navigate into the newly cloned repository.
+
+git config user.name "Your Full Name"      # Set your name for this repository.
+git config user.email "you@juspay.com" # Set your Juspay email for this repository.
+```
+
+> **Why per-repository?**
+> Setting your identity this way prevents your work email from being used on personal projects by mistake. Your global Git config remains unchanged for other repositories.
+
+---
+
+## Step 5: Test the SSH Connection
+
+Verify that your machine can successfully authenticate with Bitbucket using the new key.
+
+```bash
+ssh -T git@bitbucket.juspay.net # The -T flag tests the connection.
+```
+
+You should see a success message from Bitbucket, often including your username. If it works, you are ready to use `git pull`, `git push`, and other commands.
+
+---
+
+## Quick Troubleshooting
+
+*   **"Permission denied" errors:**
+    *   Double-check that the `Host` in your `~/.ssh/config` file is `bitbucket.juspay.net`.
+    *   Ensure the private key file has the correct permissions. On macOS/Linux, run: `chmod 600 ~/.ssh/id_ed25519_juspay`.
+*   **"Key not recognized" or password prompt:**
+    *   Confirm you added the **public key** (`.pub` file) to Bitbucket, not the private key.
+    *   Make sure the `IdentityFile` path in `~/.ssh/config` is correct.
+*   **Windows path issues:**
+    *   Always use the full, absolute path for `IdentityFile` in your `.ssh/config` file if you encounter issues (e.g., `C:/Users/YourUser/.ssh/id_ed25519_juspay`).
