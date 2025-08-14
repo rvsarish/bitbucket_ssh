@@ -1,5 +1,7 @@
 # SSH Setup for Multiple Git Accounts (Company Bitbucket & GitHub)
-## Make Sure Change all name if Company to your company name, this is just a demo
+
+# Make sure to replace all instances of "Company" with your actual company name. This is just a demo and get access for bitbucket and your companys repos.
+
 This guide provides a clear, step-by-step process for setting up a dedicated SSH key for your Company Bitbucket account. This method ensures your Company key is used only for Company repositories, preventing conflicts with other accounts like a personal GitHub.
 
 ---
