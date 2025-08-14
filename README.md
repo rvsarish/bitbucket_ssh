@@ -100,7 +100,58 @@ ssh -T git@bitbucket.juspay.net # The -T flag tests the connection.
 
 You should see a success message from Bitbucket, often including your username. If it works, you are ready to use `git pull`, `git push`, and other commands.
 
+## Step 6: Verify Your SSH Key is Loaded and Working
+
+### 1️⃣ Check if the key is loaded in the SSH agent
+
+```bash
+ssh-add -l
+```
+
+* If the output lists your key fingerprint (e.g., `id_ed25519_juspay_bitbucket`), it’s loaded.
+* If it says `The agent has no identities`, add the key:
+
+```bash
+ssh-add ~/.ssh/id_ed25519_juspay
+```
+
+> **Tip for macOS users:**
+>
+> ```bash
+> ssh-add --apple-use-keychain ~/.ssh/id_ed25519_juspay
+> ```
+
 ---
+
+### 2️⃣ Test the SSH connection
+
+```bash
+ssh -T git@bitbucket.juspay.net
+```
+
+Expected message:
+
+```
+authenticated via ssh key.
+You can use git to connect to Bitbucket.
+```
+
+* If you see `Permission denied`, check the SSH agent, key paths, and that the **public key is added to Bitbucket**.
+
+
+### 3️⃣ Optional: Debug which key is used
+
+```bash
+ssh -vT git@bitbucket.juspay.net
+```
+
+* Look for a line like:
+
+  ```
+  Offering public key: /Users/you/.ssh/id_ed25519_juspay
+  Authentication succeeded
+  ```
+* Confirms which key SSH is using for this connection.
 
 ## Quick Troubleshooting
 
